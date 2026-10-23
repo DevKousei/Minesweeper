@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080808">
+<meta name="description" content="Minesweeper by Kousei — a monochrome, mobile-friendly hidden-bomb challenge.">
+<title>Minesweeper by Kousei</title>
+<style>
+:root{color-scheme:dark;--bg:#080808;--panel:#111;--panel2:#181818;--line:#343434;--muted:#999;--text:#f5f5f5;--soft:#ccc;--danger:#fff}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -20%,#292929 0,#111 42%,#070707 100%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-x:hidden}
+button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #fff;outline-offset:3px}
+body:before{content:"";position:fixed;inset:-40%;pointer-events:none;z-index:-1;background:repeating-radial-gradient(ellipse at 50% 50%,transparent 0 34px,#ffffff08 35px 36px,transparent 37px 66px);animation:drift 48s linear infinite;transform:rotate(-12deg)}
+@keyframes drift{to{transform:rotate(348deg) translate3d(2%,1%,0)}}@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}@keyframes reveal{from{opacity:.55;transform:scale(.88)}to{opacity:1;transform:scale(1)}}@keyframes pulse{50%{filter:brightness(1.65)}}@keyframes flash{0%{opacity:.9}100%{opacity:0}}@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}@keyframes crackIn{0%{opacity:0;stroke-dashoffset:900}25%{opacity:1}100%{opacity:1;stroke-dashoffset:0}}@keyframes shatter{0%{opacity:1;transform:scale(1);filter:brightness(1)}35%{filter:brightness(1.7)}100%{opacity:0;transform:scale(.94) rotateX(7deg);filter:brightness(2)}}
+.wrap{width:min(1040px,100%);margin:auto;padding:20px 15px 42px}
+header{text-align:center;padding:12px 0 24px}.brandline{display:inline-flex;align-items:center;gap:8px;border:1px solid #414141;border-radius:999px;padding:6px 11px;color:#bbb;font-size:.7rem;letter-spacing:.18em;text-transform:uppercase}
+.brand-dot{width:6px;height:6px;background:#fff;border-radius:50%;box-shadow:0 0 12px #fff}
+h1{margin:14px 0 4px;font-size:clamp(2.1rem,8vw,4rem);line-height:.98;letter-spacing:-.065em;font-weight:900}h1 span{color:#888}.byline{font-size:.72rem;letter-spacing:.35em;color:#aaa;text-transform:uppercase;margin-top:10px}.subtitle{max-width:580px;margin:13px auto 0;color:#9a9a9a;line-height:1.55;font-size:.93rem}
+.panel{background:linear-gradient(145deg,#171717f5,#0e0e0ef7);border:1px solid var(--line);border-radius:20px;padding:clamp(14px,3vw,22px);box-shadow:0 18px 60px #0005}
+.screen{animation:rise .35s ease-out}.hidden{display:none!important}.narrow{max-width:690px;margin:0 auto}
+.section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}.section-head h2{font-size:1.25rem;margin:0 0 5px}.section-head p{margin:0;color:var(--muted);font-size:.88rem;line-height:1.5}
+.eyebrow{font-size:.68rem;letter-spacing:.16em;color:#999;text-transform:uppercase;font-weight:750}
+.field{display:grid;gap:7px;margin-bottom:14px}label{font-size:.84rem;color:#ddd;font-weight:650}input,select{width:100%;min-height:46px;padding:11px 12px;color:#f5f5f5;background:#090909;border:1px solid #414141;border-radius:11px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.check{display:flex;align-items:center;gap:9px;margin:9px 0;color:#ccc;font-size:.88rem}.check input{width:17px;min-height:17px;accent-color:#fff}
+.btn{min-height:44px;border:1px solid #777;border-radius:11px;padding:10px 15px;background:#f1f1f1;color:#090909;font-weight:800;transition:transform .15s,background .15s,border-color .15s}.btn:hover{background:#fff;transform:translateY(-1px)}.btn:active{transform:scale(.98)}.btn.secondary{color:#eee;background:#1c1c1c;border-color:#454545}.btn.secondary:hover{background:#292929}.btn.ghost{background:transparent;border-color:#3b3b3b;color:#bbb}.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}.full{width:100%}
+.mode-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:8px 0 18px}.mode-card{position:relative;text-align:left;min-height:110px;border:1px solid #383838;border-radius:13px;padding:14px;background:#101010;color:#f5f5f5}.mode-card[aria-pressed=true]{border-color:#eee;background:linear-gradient(145deg,#262626,#131313);box-shadow:inset 0 0 0 1px #fff2}.mode-card .mode-icon{font-size:1.2rem;margin-bottom:10px}.mode-card strong{display:block;font-size:.94rem}.mode-card small{display:block;margin-top:5px;color:#999;font-size:.77rem;line-height:1.35}.bomb-options{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.bomb-choice{border:1px solid #393939;background:#0a0a0a;color:#ccc;border-radius:10px;min-height:43px;font-weight:800}.bomb-choice[aria-pressed=true]{background:#f2f2f2;color:#080808;border-color:#fff}
+.dashboard{display:grid;grid-template-columns:1.1fr .9fr;gap:12px;margin-bottom:14px}.profile-card,.quick-card{background:#101010;border:1px solid #303030;border-radius:15px;padding:15px}.profile-row{display:flex;align-items:center;gap:12px}.avatar{width:48px;height:48px;display:grid;place-items:center;border-radius:13px;border:1px solid #555;background:linear-gradient(145deg,#303030,#0b0b0b);font-size:1.25rem;font-weight:900}.profile-name{font-weight:800;overflow-wrap:anywhere}.muted{color:var(--muted)}.small{font-size:.78rem}.progress{height:6px;background:#292929;border-radius:99px;overflow:hidden;margin-top:10px}.progress span{display:block;height:100%;background:#eee;width:0;transition:width .25s}.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.metric{background:#171717;border-radius:10px;padding:10px}.metric span{display:block;color:#999;font-size:.68rem;text-transform:uppercase;letter-spacing:.08em}.metric strong{display:block;font-size:1.12rem;margin-top:4px}
+.home-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.action-card{display:flex;align-items:center;gap:12px;text-align:left;padding:15px;border:1px solid #363636;background:#121212;border-radius:13px;color:#eee;min-height:74px}.action-card:hover{background:#1b1b1b;border-color:#777}.action-icon{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:#252525;font-size:1.1rem}.action-card strong{display:block;font-size:.91rem}.action-card small{display:block;color:#929292;font-size:.75rem;margin-top:3px}
+.game-panel{padding:clamp(10px,2.4vw,20px)}.game-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}.player-label{font-size:.8rem;color:#aaa}.player-label strong{color:#fff}.hud{display:flex;gap:7px;flex-wrap:wrap}.stat{border:1px solid #343434;background:#0b0b0b;border-radius:10px;padding:8px 10px;font-size:.75rem;color:#aaa}.stat strong{display:block;font-size:1rem;color:#fff;margin-top:3px;font-variant-numeric:tabular-nums}
+.board-area{position:relative;max-width:650px;margin:0 auto;perspective:900px}.board{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:clamp(2px,.7vw,5px);user-select:none;touch-action:manipulation;transition:transform .15s}.tile{aspect-ratio:1;min-width:0;padding:0;display:grid;place-items:center;border:1px solid #424242;border-radius:clamp(3px,.8vw,7px);background:linear-gradient(145deg,#303030,#191919);color:#fff;font-size:clamp(.62rem,2.3vw,1.02rem);font-weight:850;box-shadow:inset 0 1px #ffffff12,0 2px 0 #0009;transition:transform .12s,background .12s,border-color .12s;position:relative;overflow:hidden}.tile:not(:disabled):hover{border-color:#aaa;background:#3a3a3a;transform:translateY(-1px)}.tile:active{transform:scale(.94)}.tile.revealed{background:#d8d8d8;border-color:#eee;color:#111;box-shadow:none;animation:reveal .16s ease-out}.tile.flagged{color:#fff;border-color:#888}.tile.bomb{background:#f1f1f1;color:#111;border-color:#fff;animation:pulse .25s 2}.tile.bomb-hit{background:#fff;color:#000}
+.n1{color:#555!important}.n2{color:#333!important}.n3,.n4,.n5,.n6,.n7,.n8{color:#111!important}
+.crack-overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;z-index:4;overflow:visible}.crack-overlay path{fill:none;stroke:#fff;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:900;stroke-dashoffset:900;filter:drop-shadow(0 0 2px #fff)}.board-area.cracking .crack-overlay{opacity:1}.board-area.cracking .crack-overlay path{animation:crackIn .52s ease-out forwards}.board-area.shattering .board{animation:shatter .42s ease-in forwards}.board-area.shattering{animation:shake .32s ease-in-out}
+.hint{text-align:center;color:#8b8b8b;font-size:.79rem;line-height:1.5;margin:13px 0 0}.game-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:15px}
+.status{display:none;text-align:center;max-width:650px;margin:0 auto 16px;padding:clamp(18px,4vw,28px);border:1px solid #4a4a4a;border-radius:17px;background:linear-gradient(145deg,#1c1c1c,#0b0b0b)}.status.show{display:block;animation:rise .3s ease-out}.status .result-icon{font-size:1.5rem;color:#fff;margin-bottom:7px}.status h2{font-size:clamp(1.65rem,6vw,2.5rem);letter-spacing:-.04em;margin:0 0 7px}.status p{color:#aaa;line-height:1.5;margin:0 auto 16px;max-width:440px}.result-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}.result-stat{background:#111;border:1px solid #303030;border-radius:11px;padding:11px 6px}.result-stat span{display:block;color:#999;font-size:.67rem;text-transform:uppercase;letter-spacing:.08em}.result-stat strong{display:block;font-size:1.1rem;margin-top:5px}.status-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.leaderboard{margin-top:14px}.leader-row{display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:8px;align-items:center;padding:11px 0;border-bottom:1px solid #292929;font-size:.85rem}.leader-row:last-child{border-bottom:0}.rank{color:#888;font-weight:850}.score{font-weight:850;font-variant-numeric:tabular-nums}.table-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:18px 0 8px}.table-head h3{font-size:1rem;margin:0}.empty{color:#999;font-size:.88rem}
+.list-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.achievement{padding:13px;border:1px solid #333;background:#101010;border-radius:12px}.achievement.unlocked{border-color:#777;background:#1a1a1a}.achievement strong{display:block;font-size:.88rem}.achievement small{display:block;color:#999;line-height:1.4;margin-top:5px}.achievement .unlock{font-size:.68rem;color:#ccc;letter-spacing:.1em;text-transform:uppercase;margin-top:9px}
+footer{text-align:center;color:#626262;font-size:.7rem;letter-spacing:.1em;padding:25px 0 0}.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:20;background:#eee;color:#111;border-radius:999px;padding:10px 16px;font-size:.83rem;font-weight:750;box-shadow:0 8px 30px #0008;max-width:90vw;text-align:center}
+@media(max-width:650px){.wrap{padding:12px 9px 28px}.dashboard{grid-template-columns:1fr}.profile-card,.quick-card{padding:12px}.panel{border-radius:16px}.mode-grid{gap:8px}.mode-card{padding:11px;min-height:105px}.board{gap:3px}.tile{border-radius:4px}.stat{padding:7px 8px}.game-panel{padding:10px}.hud{width:100%;display:grid;grid-template-columns:repeat(3,1fr)}.stat{text-align:center}.game-top{gap:9px}.home-actions{gap:8px}.action-card{padding:11px;min-height:68px}.action-icon{width:31px;height:31px}.result-stats{gap:5px}.result-stat{padding:10px 3px}.result-stat strong{font-size:1rem}}
+@media(max-width:380px){.grid2{grid-template-columns:1fr;gap:0}.home-actions{grid-template-columns:1fr}.mode-card small{font-size:.72rem}.board{gap:2px}.tile{font-size:.62rem}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}body:before{display:none}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header>
+  <div class="brandline"><span class="brand-dot"></span> DEVKOUSEI · GAME STUDIO</div>
+  <h1>MINESWEEPER<span>.</span></h1>
+  <div class="byline">by Kousei</div>
+  <p class="subtitle">One grid. Hidden bombs. Every move counts.<br>Think carefully. Make it out.</p>
+</header>
+
+<section id="home" class="screen">
+  <div class="dashboard">
+    <div class="profile-card">
+      <div class="eyebrow">PLAYER PROFILE</div>
+      <div class="profile-row" style="margin-top:12px">
+        <div class="avatar" aria-hidden="true">K</div>
+        <div style="min-width:0;flex:1">
+          <div class="profile-name" id="homeNickname">PLAYER</div>
+          <div class="muted small" id="levelLabel">LEVEL 1 · 0 / 100 XP</div>
+          <div class="progress"><span id="xpBar"></span></div>
+        </div>
+      </div>
+      <div class="quick-grid">
+        <div class="metric"><span>Total XP</span><strong id="totalXP">0</strong></div>
+        <div class="metric"><span>Games played</span><strong id="gamesPlayed">0</strong></div>
+      </div>
+    </div>
+    <div class="quick-card">
+      <div class="eyebrow">PERSONAL RECORDS</div>
+      <div class="quick-grid">
+        <div class="metric"><span>Best score</span><strong id="bestScore">0</strong></div>
+        <div class="metric"><span>Boards cleared</span><strong id="boardsCleared">0</strong></div>
+        <div class="metric"><span>Best streak</span><strong id="bestRound">0</strong></div>
+        <div class="metric"><span>Win rate</span><strong id="winRate">0%</strong></div>
+      </div>
+    </div>
+  </div>
+  <div class="panel narrow">
+    <div class="section-head">
+      <div><h2>Enter the grid</h2><p>Choose your identity, mode, and bomb count.</p></div>
+      <span class="eyebrow">01 / PLAY</span>
+    </div>
+    <form id="setupForm">
+      <div class="field"><label for="nickname">Player nickname</label><input id="nickname" maxlength="16" minlength="2" placeholder="Enter your nickname" autocomplete="nickname" required></div>
+      <div class="eyebrow" style="margin-bottom:9px">SELECT MODE</div>
+      <div class="mode-grid" id="modeGrid">
+        <button class="mode-card" type="button" data-mode="classic" aria-pressed="true"><div class="mode-icon">▦</div><strong>Classic</strong><small>Traditional Minesweeper. Clear every safe tile.</small></button>
+        <button class="mode-card" type="button" data-mode="risk" aria-pressed="false"><div class="mode-icon">◇</div><strong>Risk Run</strong><small>High-pressure run with no extra hints.</small></button>
+        <button class="mode-card" type="button" data-mode="time" aria-pressed="false"><div class="mode-icon">◷</div><strong>Time Attack</strong><small>Clear as many boards as possible in 60 seconds.</small></button>
+        <button class="mode-card" type="button" data-mode="endless" aria-pressed="false"><div class="mode-icon">∞</div><strong>Endless</strong><small>Every clear increases the bomb count.</small></button>
+      </div>
+      <div class="field"><label>Bomb count per board</label><div class="bomb-options" id="bombOptions">
+        <button class="bomb-choice" type="button" data-bombs="10" aria-pressed="false">10</button>
+        <button class="bomb-choice" type="button" data-bombs="15" aria-pressed="true">15</button>
+        <button class="bomb-choice" type="button" data-bombs="20" aria-pressed="false">20</button>
+        <button class="bomb-choice" type="button" data-bombs="25" aria-pressed="false">25</button>
+      </div></div>
+      <div class="grid2">
+        <label class="check"><input id="soundToggle" type="checkbox"> Sound effects</label>
+        <label class="check"><input id="motionToggle" type="checkbox" checked> Animations</label>
+      </div>
+      <button class="btn full" type="submit" style="margin-top:8px">START GAME&nbsp; ↗</button>
+    </form>
+  </div>
+  <div class="home-actions" style="margin-top:12px">
+    <button class="action-card" id="openLeaderboard"><span class="action-icon">♜</span><span><strong>Leaderboard</strong><small>Best scores on this device</small></span></button>
+    <button class="action-card" id="openStats"><span class="action-icon">▤</span><span><strong>Statistics</strong><small>Track your progress</small></span></button>
+    <button class="action-card" id="openAchievements"><span class="action-icon">◇</span><span><strong>Achievements</strong><small>Unlock milestones</small></span></button>
+    <button class="action-card" id="openSettings"><span class="action-icon">⚙</span><span><strong>Settings</strong><small>Preferences and profile</small></span></button>
+  </div>
+</section>
+
+<section id="gameScreen" class="screen hidden">
+  <div class="panel game-panel">
+    <div class="game-top">
+      <div class="player-label">PLAYER <strong id="playerName">PLAYER</strong><div class="eyebrow" id="modeLabel" style="margin-top:5px">CLASSIC</div></div>
+      <div class="hud">
+        <div class="stat">SAFE TILES<strong id="safeCount">0 / 85</strong></div>
+        <div class="stat">BOMBS<strong id="bombCountHud">15</strong></div>
+        <div class="stat">TIME<strong id="timeHud">00:00</strong></div>
+      </div>
+    </div>
+    <div id="status" class="status" aria-live="polite">
+      <div class="result-icon" id="resultIcon">×</div>
+      <h2 id="statusTitle">GAME OVER</h2>
+      <p id="statusText"></p>
+      <div class="result-stats">
+        <div class="result-stat"><span>Score</span><strong id="resultScore">0</strong></div>
+        <div class="result-stat"><span>XP gained</span><strong id="resultXP">+0</strong></div>
+        <div class="result-stat"><span>Best score</span><strong id="resultBest">0</strong></div>
+      </div>
+      <div class="status-actions">
+        <button class="btn" id="retryBtn">↻ Retry</button>
+        <button class="btn secondary" id="menuBtn">Main menu</button>
+        <button class="btn secondary" id="resultLeaderboardBtn">Leaderboard</button>
+      </div>
+    </div>
+    <div class="board-area" id="boardArea">
+      <div class="board" id="board" aria-label="10 by 10 Minesweeper board"></div>
+      <svg class="crack-overlay" id="crackOverlay" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M500 500 L455 435 L470 375 L420 320 L440 250 L380 195 L350 100"/>
+        <path d="M455 435 L385 455 L330 410 L265 425 L210 380 L130 390 L60 340"/>
+        <path d="M470 375 L530 330 L555 270 L620 230 L635 155 L700 100"/>
+        <path d="M530 330 L610 355 L665 325 L735 350 L800 300 L920 310"/>
+        <path d="M500 500 L440 550 L390 610 L330 625 L290 700 L215 740 L180 830"/>
+        <path d="M440 550 L480 625 L450 690 L500 755 L470 840 L510 930"/>
+        <path d="M500 500 L570 530 L620 590 L690 585 L740 645 L830 665 L920 730"/>
+        <path d="M570 530 L600 465 L665 445 L700 400 L780 420 L850 380"/>
+        <path d="M385 455 L365 520 L300 555 L260 600 L180 610"/>
+        <path d="M610 355 L600 405 L650 430 L665 485 L725 510"/>
+      </svg>
+    </div>
+    <p class="hint" id="hint">Tap a tile to reveal it. Numbers show how many bombs are nearby.</p>
+    <div class="game-actions">
+      <button class="btn secondary" id="flagBtn">⚑ Flag mode: OFF</button>
+      <button class="btn secondary" id="restartBtn">↻ Restart</button>
+      <button class="btn ghost" id="leaveBtn">Main menu</button>
+    </div>
+  </div>
+  <section id="gameLeaderboard" class="panel leaderboard hidden"><div class="section-head"><div><h2>Local leaderboard</h2><p>Saved in this browser on this device.</p></div></div><div id="leaderRows"></div></section>
+</section>
+
+<section id="subScreen" class="screen hidden">
+  <div class="panel narrow">
+    <div class="section-head"><div><h2 id="subTitle">Statistics</h2><p id="subDescription"></p></div><button class="btn secondary" id="backHome">← Back</button></div>
+    <div id="subContent"></div>
+  </div>
+</section>
+<footer>MINESWEEPER BY KOUSEI · BLACK / WHITE / GREY · THINK BEFORE YOU TAP</footer>
+</main>
+<div id="toast" class="toast hidden" role="status"></div>
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id), TOTAL=100, XP_KEY='mk_profile_v2', SCORES_KEY='mk_scores_v2';
+let nickname='PLAYER',mode='classic',baseBombs=15,bombs=15,board=[],revealed=0,ended=false,flagMode=false,sound=false,animations=true;
+let startedAt=0,elapsed=0,ticker=null,remainingTime=60,round=1,score=0,runXP=0,clearedThisRun=0,combo=0,bestComboRun=0,runId=0,ending=false;
+const modeNames={classic:'CLASSIC',risk:'RISK RUN',time:'TIME ATTACK',endless:'ENDLESS'};
+const freshProfile=()=>({xp:0,games:0,wins:0,clears:0,bestScore:0,bestTime:null,bestRound:0,bestCombo:0,achievements:[],lastName:'',totalReveals:0});
+function loadProfile(){try{return {...freshProfile(),...JSON.parse(localStorage.getItem(XP_KEY)||'{}')}}catch(_){return freshProfile()}}
+let profile=loadProfile();
+function saveProfile(){try{localStorage.setItem(XP_KEY,JSON.stringify(profile))}catch(_){}}
+function loadScores(){try{return JSON.parse(localStorage.getItem(SCORES_KEY)||'[]')}catch(_){return []}}
+function saveScores(list){try{localStorage.setItem(SCORES_KEY,JSON.stringify(list.slice(0,100)))}catch(_){}}
+function xpForLevel(level){return 100+(level-1)*50}
+function getLevel(xp=profile.xp){let level=1,rest=xp;while(rest>=xpForLevel(level)){rest-=xpForLevel(level);level++}return {level,into:rest,need:xpForLevel(level)}}
+function fmtTime(s){s=Math.max(0,Math.floor(s));return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`}
+function safeText(el,text){el.textContent=String(text)}
+let toastTimer;
+function toast(msg){$('toast').textContent=msg;$('toast').classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.add('hidden'),2200)}
+function tone(freq=440,duration=.06){if(!sound)return;try{const C=window.AudioContext||window.webkitAudioContext,ctx=new C(),osc=ctx.createOscillator(),gain=ctx.createGain();osc.type='sine';osc.frequency.value=freq;gain.gain.value=.025;osc.connect(gain);gain.connect(ctx.destination);osc.start();gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+duration);osc.stop(ctx.currentTime+duration);osc.onended=()=>ctx.close()}catch(_){}}
+function renderProfile(){const l=getLevel();safeText($('homeNickname'),profile.lastName||nickname||'PLAYER');safeText($('levelLabel'),`LEVEL ${l.level} · ${l.into} / ${l.need} XP`);$('xpBar').style.width=`${Math.round(l.into/l.need*100)}%`;safeText($('totalXP'),profile.xp);safeText($('gamesPlayed'),profile.games);safeText($('bestScore'),profile.bestScore);safeText($('boardsCleared'),profile.clears);safeText($('bestRound'),profile.bestRound);safeText($('winRate'),`${profile.games?Math.round(profile.wins/profile.games*100):0}%`)}
+function selectMode(v){mode=v;document.querySelectorAll('.mode-card').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===v)))}
+function selectBombs(v){baseBombs=v;document.querySelectorAll('.bomb-choice').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.bombs)===v)))}
+function neighbors(i){const x=i%10,y=Math.floor(i/10),out=[];for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;const nx=x+dx,ny=y+dy;if(nx>=0&&nx<10&&ny>=0&&ny<10)out.push(ny*10+nx)}return out}
+function makeBoard(){board=Array.from({length:TOTAL},(_,i)=>({i,bomb:false,revealed:false,flagged:false,count:0,el:null}));let ids=Array.from({length:TOTAL},(_,i)=>i);for(let i=ids.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[ids[i],ids[j]]=[ids[j],ids[i]]}ids.slice(0,bombs).forEach(i=>board[i].bomb=true);board.forEach(c=>{if(!c.bomb)c.count=neighbors(c.i).filter(n=>board[n].bomb).length})}
+function renderBoard(){const el=$('board');el.innerHTML='';board.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='tile';b.setAttribute('aria-label',`Hidden tile ${c.i+1}`);b.addEventListener('click',()=>tap(c.i));b.addEventListener('contextmenu',e=>{e.preventDefault();toggleFlag(c.i)});c.el=b;el.appendChild(b)})}
+function updateHud(){safeText($('safeCount'),`${revealed} / ${TOTAL-bombs}`);safeText($('bombCountHud'),bombs);safeText($('timeHud'),mode==='time'?`${remainingTime}s`:fmtTime(elapsed))}
+function startTimer(){clearInterval(ticker);startedAt=Date.now();elapsed=0;remainingTime=60;updateHud();ticker=setInterval(()=>{if(ended)return;elapsed=Math.floor((Date.now()-startedAt)/1000);if(mode==='time'){remainingTime=Math.max(0,60-elapsed);safeText($('timeHud'),`${remainingTime}s`);if(remainingTime<=0)finishRun(true,'TIME UP')}else{safeText($('timeHud'),fmtTime(elapsed))}},200)}
+function resetBoard(){revealed=0;flagMode=false;$('flagBtn').textContent='⚑ Flag mode: OFF';$('boardArea').classList.remove('cracking','shattering');$('crackOverlay').querySelectorAll('path').forEach(p=>{p.style.animation='none';p.style.strokeDashoffset='900'});void $('boardArea').offsetWidth;$('boardArea').classList.remove('shattering');makeBoard();renderBoard();updateHud();$('hint').textContent=mode==='risk'?'Risk Run: no extra hints. Read the numbers and trust your decisions.':'Tap a tile to reveal it. Numbers show how many bombs are nearby.'}
+function beginGame(){const n=$('nickname').value.trim();if(n.length<2){$('nickname').focus();return}nickname=n.slice(0,16);profile.lastName=nickname;saveProfile();mode=document.querySelector('.mode-card[aria-pressed="true"]').dataset.mode;baseBombs=Number(document.querySelector('.bomb-choice[aria-pressed="true"]').dataset.bombs);bombs=baseBombs;sound=$('soundToggle').checked;animations=$('motionToggle').checked;ended=false;ending=false;round=1;score=0;runXP=0;clearedThisRun=0;combo=0;bestComboRun=0;runId++;$('home').classList.add('hidden');$('subScreen').classList.add('hidden');$('gameScreen').classList.remove('hidden');$('status').classList.remove('show');$('gameLeaderboard').classList.add('hidden');safeText($('playerName'),nickname);safeText($('modeLabel'),modeNames[mode]);resetBoard();startTimer();window.scrollTo({top:0,behavior:animations?'smooth':'auto'})}
+function revealCell(c){if(c.revealed||c.bomb||ended)return;c.revealed=true;c.el.classList.add('revealed');c.el.disabled=true;c.el.textContent=c.count?String(c.count):'';c.el.setAttribute('aria-label',c.count?`Revealed tile, ${c.count} nearby bombs`:'Revealed safe tile');if(c.count)c.el.classList.add(`n${c.count}`);revealed++;profile.totalReveals++;combo++;bestComboRun=Math.max(bestComboRun,combo);const earned=10+Math.min(10,Math.floor(combo/4)*2);score+=earned;runXP+=2;updateHud();if(mode==='classic'&&c.count===0){neighbors(c.i).forEach(n=>{if(!board[n].bomb&&!board[n].revealed)revealCell(board[n])})}}
+function tap(i){if(ended||ending)return;const c=board[i];if(c.revealed)return;if(flagMode){toggleFlag(i);return}if(c.flagged)return;if(c.bomb){combo=0;hitBomb(c);return}revealCell(c);tone(420+Math.min(8,c.count)*30,.045);if(revealed===TOTAL-bombs)clearBoard()}
+function toggleFlag(i){if(ended||ending)return;const c=board[i];if(c.revealed)return;c.flagged=!c.flagged;c.el.classList.toggle('flagged',c.flagged);c.el.textContent=c.flagged?'⚑':'';c.el.setAttribute('aria-label',c.flagged?`Flagged tile ${i+1}`:`Hidden tile ${i+1}`);tone(c.flagged?650:320,.04)}
+function revealBombs(hit){board.forEach(c=>{c.el.disabled=true;if(c.bomb){c.el.classList.add('bomb');c.el.textContent='✹';c.el.setAttribute('aria-label','Bomb');}else if(c.flagged){c.el.textContent='⚑'}});if(hit){hit.el.classList.add('bomb-hit');hit.el.textContent='✹'}}
+function hitBomb(c){ending=true;ended=true;clearInterval(ticker);revealBombs(c);tone(110,.24);updateHud();if(animations&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches){const area=$('boardArea');area.classList.remove('cracking','shattering');void area.offsetWidth;area.classList.add('cracking');document.body.insertAdjacentHTML('beforeend','<div id="impactFlash" style="position:fixed;inset:0;background:#fff;opacity:.0;pointer-events:none;z-index:30"></div>');const f=$('impactFlash');f.animate([{opacity:.65},{opacity:0}],{duration:380,easing:'ease-out'});setTimeout(()=>{area.classList.add('shattering');setTimeout(()=>finishRun(false,'BOMB DETONATED'),440)},560)}else finishRun(false,'BOMB DETONATED')}
+function clearBoard(){clearedThisRun++;profile.clears++;combo=0;const clearBonus=100+Math.max(0,Math.floor((bombs/10)*10));score+=clearBonus;runXP+=30;if(reason!=='TIME UP')profile.wins++;profile.bestRound=Math.max(profile.bestRound,round);if(mode==='time'){const timeBonus=Math.max(0,remainingTime)*5;score+=timeBonus;toast(`BOARD CLEARED · +${clearBonus+timeBonus} BONUS`);bombs=baseBombs;round++;resetBoard();return}if(mode==='endless'){toast(`ROUND ${round} CLEARED · +${clearBonus} BONUS`);round++;bombs=Math.min(80,baseBombs+(round-1)*5);resetBoard();return}finishRun(true,'BOARD CLEARED')}
+function finishRun(won,reason){if(ended&& !ending)return;ended=true;ending=true;clearInterval(ticker);elapsed=Math.floor((Date.now()-startedAt)/1000);let finalXP=runXP+(won&&reason!=='TIME UP'?50:0);if(mode==='endless')finalXP+=clearedThisRun*10;profile.xp+=finalXP;profile.games++;profile.bestScore=Math.max(profile.bestScore,score);if(won&&mode!=='time')profile.bestTime=profile.bestTime===null?elapsed:Math.min(profile.bestTime,elapsed);profile.bestCombo=Math.max(profile.bestCombo,bestComboRun);checkAchievements(won);saveProfile();const list=loadScores();list.push({name:nickname,mode,bombs:baseBombs,score,won,round:mode==='endless'?round-1:clearedThisRun,time:elapsed,date:new Date().toLocaleDateString()});list.sort((a,b)=>b.score-a.score||a.time-b.time);saveScores(list);renderProfile();showResults(won,reason,finalXP)}
+function showResults(won,reason,xp=runXP){ending=false;const best=profile.bestScore;safeText($('resultIcon'),won?'✓':'×');safeText($('statusTitle'),won?(mode==='time'?'TIME ATTACK COMPLETE':mode==='endless'?'RUN ENDED':'BOARD CLEARED'):'GAME OVER');safeText($('statusText'),won?(mode==='time'?`Time is up, ${nickname}. You cleared ${clearedThisRun} board(s) in 60 seconds.`:mode==='endless'?`${nickname}, you reached round ${Math.max(1,round-1)}. How far can you go next time?`:`Clean run, ${nickname}. You cleared every safe tile in ${fmtTime(elapsed)}.`):(mode==='time'&&reason==='TIME UP'?`Time is up, ${nickname}. Your final score is recorded.`:`${nickname}, you hit a bomb after revealing ${revealed} safe tiles. Your earned XP is kept.`));safeText($('resultScore'),score);safeText($('resultXP'),`+${xp}`);safeText($('resultBest'),best);$('status').classList.add('show');$('hint').classList.add('hidden');$('boardArea').classList.remove('cracking','shattering');$('gameLeaderboard').classList.add('hidden');$('status').scrollIntoView({behavior:animations?'smooth':'auto',block:'nearest'})}
+function checkAchievements(won){const checks=[['first-game',profile.games>=0,'First Steps','Start your journey.'],['first-clear',profile.clears>=1,'First Clear','Clear your first board.'],['ten-clears',profile.clears>=10,'Grid Veteran','Clear 10 boards.'],['score-1000',profile.bestScore>=1000,'Four Digits','Reach a score of 1,000.'],['combo-10',profile.bestCombo>=10,'In The Zone','Build a combo of 10.'],['level-5',getLevel().level>=5,'Rising Player','Reach level 5.']];checks.forEach(([id,ok])=>{if(ok&&!profile.achievements.includes(id)){profile.achievements.push(id);if(id!=='first-game')toast(`ACHIEVEMENT UNLOCKED · ${id.replaceAll('-',' ').toUpperCase()}`)}})}
+function showLeaderboard(target='sub'){const list=loadScores();const html=list.length?list.slice(0,30).map((s,i)=>`<div class="leader-row"><span class="rank">#${i+1}</span><span>${escapeHtml(s.name)} <span class="muted small">· ${modeNames[s.mode]||s.mode} · ${s.bombs} bombs</span></span><span class="score">${s.score.toLocaleString()} pts</span></div>`).join(''):'<p class="empty">No scores yet. Play a round to create your first record.</p>';if(target==='game'){$('leaderRows').innerHTML=html;$('gameLeaderboard').classList.remove('hidden');$('gameLeaderboard').scrollIntoView({behavior:animations?'smooth':'auto',block:'nearest'})}else showSub('Leaderboard','Your best runs saved on this device.',html+'<p class="hint">This is a local leaderboard. A global online leaderboard requires a database and server-side score validation.</p>')}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function showSub(title,desc,content){$('home').classList.add('hidden');$('gameScreen').classList.add('hidden');$('subScreen').classList.remove('hidden');safeText($('subTitle'),title);safeText($('subDescription'),desc);$('subContent').innerHTML=content;window.scrollTo({top:0,behavior:'smooth'})}
+function showStats(){const l=getLevel();showSub('Statistics','Your lifetime Minesweeper record.',`<div class="list-grid"><div class="metric"><span>Total XP</span><strong>${profile.xp}</strong></div><div class="metric"><span>Level</span><strong>${l.level}</strong></div><div class="metric"><span>Games played</span><strong>${profile.games}</strong></div><div class="metric"><span>Wins</span><strong>${profile.wins}</strong></div><div class="metric"><span>Boards cleared</span><strong>${profile.clears}</strong></div><div class="metric"><span>Best score</span><strong>${profile.bestScore}</strong></div><div class="metric"><span>Best round</span><strong>${profile.bestRound}</strong></div><div class="metric"><span>Best combo</span><strong>${profile.bestCombo}</strong></div><div class="metric"><span>Safe tiles revealed</span><strong>${profile.totalReveals}</strong></div><div class="metric"><span>Fastest clear</span><strong>${profile.bestTime===null?'—':fmtTime(profile.bestTime)}</strong></div></div>`)}
+function showAchievements(){const items=[['first-game','First Steps','Start your journey.'],['first-clear','First Clear','Clear your first board.'],['ten-clears','Grid Veteran','Clear 10 boards.'],['score-1000','Four Digits','Reach a score of 1,000.'],['combo-10','In The Zone','Build a combo of 10.'],['level-5','Rising Player','Reach level 5.']];showSub('Achievements','Milestones to work toward.',`<div class="list-grid">${items.map(([id,name,desc])=>`<div class="achievement ${profile.achievements.includes(id)?'unlocked':''}"><strong>${name}</strong><small>${desc}</small><div class="unlock">${profile.achievements.includes(id)?'✓ UNLOCKED':'○ LOCKED'}</div></div>`).join('')}</div>`)}
+function showSettings(){showSub('Settings','Your preferences are stored on this device.',`<div class="field"><label for="editName">Player nickname</label><input id="editName" maxlength="16" minlength="2" value="${escapeHtml(profile.lastName||nickname)}"></div><button class="btn full" id="saveNameBtn">Save nickname</button><div style="height:14px"></div><button class="btn secondary full" id="resetStatsBtn">Reset local statistics</button><p class="hint">Resetting statistics cannot be undone. Your game preferences can be changed on the main menu.</p>`);$('saveNameBtn').addEventListener('click',()=>{const n=$('editName').value.trim();if(n.length<2){toast('Nickname must be at least 2 characters.');return}profile.lastName=n.slice(0,16);nickname=profile.lastName;saveProfile();renderProfile();toast('Nickname saved.');showSettings()});$('resetStatsBtn').addEventListener('click',()=>{if(confirm('Reset XP, statistics, achievements, and local scores? This cannot be undone.')){profile=freshProfile();saveProfile();saveScores([]);renderProfile();toast('Local progress reset.');showSettings()}})}
+function returnHome(){clearInterval(ticker);$('gameScreen').classList.add('hidden');$('subScreen').classList.add('hidden');$('home').classList.remove('hidden');$('status').classList.remove('show');$('boardArea').classList.remove('cracking','shattering');renderProfile();window.scrollTo({top:0,behavior:'smooth'})}
+function retry(){ended=false;ending=false;score=0;runXP=0;clearedThisRun=0;combo=0;bestComboRun=0;round=1;bombs=baseBombs;$('status').classList.remove('show');$('hint').classList.remove('hidden');resetBoard();startTimer()}
+document.querySelectorAll('.mode-card').forEach(b=>b.addEventListener('click',()=>selectMode(b.dataset.mode)));document.querySelectorAll('.bomb-choice').forEach(b=>b.addEventListener('click',()=>selectBombs(Number(b.dataset.bombs))));
+$('setupForm').addEventListener('submit',e=>{e.preventDefault();beginGame()});$('flagBtn').addEventListener('click',()=>{if(ended)return;flagMode=!flagMode;$('flagBtn').textContent=`⚑ Flag mode: ${flagMode?'ON':'OFF'}`;$('flagBtn').classList.toggle('btn',flagMode);toast(flagMode?'Tap a tile to place a flag.':'Flag mode off.')});$('restartBtn').addEventListener('click',retry);$('retryBtn').addEventListener('click',retry);$('leaveBtn').addEventListener('click',returnHome);$('menuBtn').addEventListener('click',returnHome);$('openLeaderboard').addEventListener('click',()=>showLeaderboard());$('resultLeaderboardBtn').addEventListener('click',()=>showLeaderboard());$('openStats').addEventListener('click',showStats);$('openAchievements').addEventListener('click',showAchievements);$('openSettings').addEventListener('click',showSettings);$('backHome').addEventListener('click',returnHome);
+renderProfile();selectMode('classic');selectBombs(15);
+})();
+</script>
+</body>
+</html>
